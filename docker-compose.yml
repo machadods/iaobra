@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+
+  # ── Banco de dados ────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: iaobra_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB:-iaobras_db}
+      POSTGRES_USER:     ${POSTGRES_USER:-iaobra}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-iaobra}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - iaobra_net
+
+  # ── Aplicacao Streamlit ───────────────────────────────────────────────
+  app:
+    build: .
+    container_name: iaobra_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env.production
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-iaobra}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-iaobras_db}
+    volumes:
+      - uploads_data:/app/uploads
+      - app_data:/app/data
+      - app_logs:/app/logs
+    networks:
+      - iaobra_net
+    expose:
+      - "8501"
+
+  # ── Nginx (proxy reverso + HTTPS) ────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: iaobra_nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./infra/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - iaobra_net
+
+volumes:
+  postgres_data:
+  uploads_data:
+  app_data:
+  app_logs:
+  nginx_logs:
+
+networks:
+  iaobra_net:
+    driver: bridge

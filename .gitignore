@@ -1,0 +1,42 @@
+# ============================================================
+# IAOBRA — .gitignore
+# ============================================================
+
+# Seguranca — NUNCA commitar credenciais reais
+.env
+.env.production
+infra/ssl/
+backups/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Dados de runtime (gerados automaticamente)
+uploads/
+data/
+logs/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Testes
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker volumes locais
+postgres_data/

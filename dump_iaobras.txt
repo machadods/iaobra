@@ -1,0 +1,438 @@
+
+
+========== app.py ==========
+
+import streamlit as st
+import importlib
+from style import load_css
+
+# ==============================
+# CONFIGURAÇÕES INICIAIS
+# ==============================
+st.set_page_config(
+    page_title="IAOBRA - Mestre Digital",
+    page_icon="🧱",
+    layout="wide"
+)
+
+load_css()  # Carrega o CSS global
+
+# ==============================
+# MENU LATERAL ESTILIZADO
+# ==============================
+st.sidebar.title("📱 IAOBRA")
+
+menu = {
+    "Tela Inicial": "🏠 Tela Inicial",
+    "Estudos": "📚 Estudos",
+    "Diário da Obra": "📓 Diário da Obra",
+    "Minhas Obras": "🏗️ Minhas Obras",
+    "Orçamento de Materiais": "💰 Orçamento de Materiais",
+    "Mercado de Sobras": "♻️ Mercado de Sobras"
+}
+
+# Estado da página
+if "pagina" not in st.session_state:
+    st.session_state.pagina = "Tela Inicial"
+
+# Construção do menu estilizado
+for chave, rotulo in menu.items():
+    classe = "sidebar-btn"
+    if st.session_state.pagina == chave:
+        classe += " active-btn"
+
+    if st.sidebar.button(rotulo, key=chave):
+        st.session_state.pagina = chave
+
+opcao = st.session_state.pagina
+
+# ==============================
+# HEADER GLOBAL
+# ==============================
+st.markdown(f"""
+<div style='padding: 12px 0; margin-bottom: 20px; 
+     border-bottom: 1px solid #1f2937;'>
+    <h2 style='color:white; margin:0;'>{menu[opcao]}</h2>
+</div>
+""", unsafe_allow_html=True)
+
+# ==============================
+# ROTEAMENTO DAS TELAS
+# ==============================
+try:
+    if opcao == "Tela Inicial":
+        importlib.import_module("tela_estudo_mestre").render()
+
+    elif opcao == "Estudos":
+        importlib.import_module("tela_estudo_mestre").render()
+
+    elif opcao == "Diário da Obra":
+        importlib.import_module("tela_diario").render()
+
+    elif opcao == "Minhas Obras":
+        importlib.import_module("tela_obras").render()
+
+    elif opcao == "Orçamento de Materiais":
+        importlib.import_module("orcamento").render()
+
+    elif opcao == "Mercado de Sobras":
+        importlib.import_module("sobras").render()
+
+except Exception as e:
+    st.error(f"Erro ao carregar a página: {e}")
+    st.code(e, language="python")
+
+
+========== iaobras.py ==========
+
+import streamlit as st
+from style import load_css
+
+def render():
+    load_css()
+
+    st.markdown("<div class='title'>📓 Diário da Obra</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>Registre o que aconteceu hoje de forma rápida e visual.</div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+
+    st.text_area("📝 Registro", 
+        placeholder="Exemplo:\n• Rebocamos a sala\n• Chegaram 12 sacos de cimento\n• A equipe finalizou o contrapiso\n• Ajustamos a porta da lavanderia")
+
+    st.file_uploader("📸 Foto do dia", type=["jpg","png"])
+    st.file_uploader("🎤 Áudio explicativo (opcional)", type=["mp3","wav"])
+
+    st.markdown("<div class='btn'>Salvar Registro</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+========== orcamento.py ==========
+
+import streamlit as st
+from style import load_css
+
+def render():
+    load_css()
+
+    st.markdown("<div class='title'>💰 Orçamento Inteligente</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>Pesquise preços rapidamente sem sair da obra.</div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+
+    material = st.text_input("🔨 Material", placeholder="Ex: cimento, brita, areia...")
+    quantidade = st.number_input("📦 Quantidade", min_value=1)
+    loja = st.selectbox("🏪 Loja", ["Casa do Construtor", "Material Forte", "Ferragem Central"])
+
+    st.markdown("<div class='btn'>Pesquisar Preço</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+========== sobras.py ==========
+
+import streamlit as st
+from style import load_css
+
+def render():
+    load_css()
+
+    st.markdown("<div class='title'>♻️ Mercado de Sobras</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>Venda materiais que sobraram e ganhe uma renda extra.</div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    nome = st.text_input("📦 Item", placeholder="Ex: 12 pisos 60x60, tinta branca 3L...")
+    preco = st.number_input("💰 Preço (R$)", min_value=0.0)
+    foto = st.file_uploader("📸 Foto do item", type=["jpg","png"])
+
+    st.markdown("<div class='btn'>Publicar</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+========== style.py ==========
+
+import streamlit as st
+
+def load_css():
+    st.markdown("""
+    <style>
+
+    /* ======== FUNDO ======== */
+    body {
+        background-color: #0b0f19;
+    }
+
+    /* ======== TITULOS ======== */
+    .title {
+        color: #ffffff;
+        font-size: 26px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .subtitle {
+        color: #b0b9c9;
+        font-size: 15px;
+        margin-bottom: 15px;
+    }
+
+    /* ======== CARDS ======== */
+    .card {
+        background: #111827;
+        border: 1px solid #1f2937;
+        padding: 20px;
+        border-radius: 14px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 12px rgba(0,0,0,0.35);
+        transition: 0.2s ease;
+    }
+
+    .card:hover {
+        transform: scale(1.01);
+        border: 1px solid #3b82f6;
+    }
+
+    /* ======== BOTOES ======== */
+    .btn {
+        background: linear-gradient(90deg,#0f172a,#1e3a8a,#1d4ed8);
+        padding: 12px;
+        border-radius: 10px;
+        color: white !important;
+        text-align: center;
+        font-weight: 600;
+        margin-top: 12px;
+        width: 100%;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    .btn:hover {
+        opacity: 0.85;
+        transform: scale(1.02);
+    }
+
+    /* ======== INPUTS ======== */
+    input, textarea, select {
+        background-color: #0d1324 !important;
+        color: #eee !important;
+        border-radius: 8px !important;
+        border: 1px solid #1f2937 !important;
+    }
+
+    label {
+    color: #d0d7e2 !important;
+    font-weight: 600 !important;
+    margin-bottom: 5px !important;
+}
+.sidebar-btn {
+    background: #111827;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #1f2937;
+    width: 100%;
+    color: white !important;
+    text-align: left;
+    font-weight: 500;
+    margin-bottom: 8px;
+    transition: 0.2s ease;
+}
+
+.sidebar-btn:hover {
+    border: 1px solid #3b82f6;
+    transform: scale(1.02);
+    background: #1a2234;
+}
+
+.active-btn {
+    background: #3b82f6 !important;
+    border: 1px solid #60a5fa !important;
+    color: white !important;
+}
+
+
+    </style>
+    """, unsafe_allow_html=True)
+
+
+========== tela_diario.py ==========
+
+import streamlit as st
+from style import load_css
+
+def render():
+    load_css()
+
+    st.markdown("<div class='title'>📓 Diário da Obra</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>Registre o andamento da obra de um jeito simples e rápido.</div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+
+    texto = st.text_area(
+        "📝 Descreva o que foi feito hoje",
+        placeholder="Exemplo:\n• Reboco da sala iniciado\n• Chegada de 8 sacos de cimento\n• Equipe finalizou o contrapiso\n• Ajuste das portas internas"
+    )
+
+    foto = st.file_uploader("📸 Foto do dia", type=["jpg", "png"])
+    audio = st.file_uploader("🎤 Áudio explicativo (opcional)", type=["mp3", "wav"])
+
+    if st.button("Salvar registro"):
+        st.success("Registro salvo no diário!")
+        st.toast("Entrada adicionada ✔")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
+========== tela_estudo_mestre.py ==========
+
+import streamlit as st
+from style import load_css
+
+def render():
+    load_css()
+
+    # --- Título ---
+    st.markdown("<div class='title'>📚 Estudar – Formação para Mestres de Obras</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>Escolha um curso ou faça uma pergunta para a IA de Estudos.</div>", unsafe_allow_html=True)
+
+    # ============================
+    # LAYOUT PRINCIPAL EM 2 COLUNAS
+    # ============================
+    col_chat, col_menu = st.columns([7, 3], gap="large")
+
+    # =====================================
+    # COLUNA DA ESQUERDA – CHAT DE ESTUDO
+    # =====================================
+    with col_chat:
+        
+        # Histórico do chat
+        if "chat_estudo" not in st.session_state:
+            st.session_state.chat_estudo = []
+
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+
+        # Exibir histórico
+        for msg in reversed(st.session_state.chat_estudo):
+            if msg["role"] == "user":
+                st.markdown(f"""
+                    <div style='background:#012a46; padding:12px; border-radius:12px; margin-bottom:10px; text-align:right; color:white;'>
+                        <b>Você:</b> {msg['content']}
+                    </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                    <div style='background:#003f63; padding:12px; border-radius:12px; margin-bottom:10px; color:white;'>
+                        <b>IA:</b> {msg['content']}
+                    </div>
+                """, unsafe_allow_html=True)
+
+        # Campo da pergunta
+        pergunta = st.text_input(
+            "Faça uma pergunta para estudar:",
+            placeholder="Ex: Qual a proporção de cimento e areia no reboco?"
+        )
+
+        if st.button("Enviar Pergunta", use_container_width=True):
+            if pergunta.strip():
+                st.session_state.chat_estudo.append({"role": "user", "content": pergunta})
+                resposta = gerar_resposta_simulada(pergunta)
+                st.session_state.chat_estudo.append({"role": "assistant", "content": resposta})
+                st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # =====================================
+    # COLUNA DA DIREITA – MENU DE ESTUDOS
+    # =====================================
+    with col_menu:
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:white;'>📘 Cursos Disponíveis</h3>", unsafe_allow_html=True)
+
+        cursos = [
+            "📐 Cálculo de Materiais",
+            "🧱 Reboco e Acabamento",
+            "⚒️ Segurança no Trabalho",
+            "🏗️ Organização do Canteiro",
+            "🔌 Instalações Elétricas Básicas",
+            "🚰 Hidráulica Essencial",
+            "🪵 Carpintaria para Iniciantes",
+        ]
+
+        for curso in cursos:
+            st.markdown(f"<div class='btn'>{curso}</div>", unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # LIVROS / PDF
+        st.markdown("<div class='card'>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:white;'>📚 Apostilas e Livros</h3>", unsafe_allow_html=True)
+
+        livros = [
+            "📄 Manual do Mestre de Obras",
+            "📘 Apostila de Fundamentos da Construção",
+            "📗 Guia de Segurança Civil",
+            "📕 Normas Básicas NBR (versão simplificada)",
+        ]
+
+        for l in livros:
+            st.markdown(f"<div class='btn'>{l}</div>", unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+
+# ===================================================
+# IA SIMULADA (ZERO API, 100% OFFLINE)
+# ===================================================
+def gerar_resposta_simulada(pergunta):
+    texto = pergunta.lower()
+
+    if "cimento" in texto and "areia" in texto:
+        return (
+            "A proporção mais comum para reboco é **1:5** (cimento : areia fina).\n"
+            "Para contrapiso, costuma-se usar **1:3**.\n\n"
+            "Dica: Sempre peneire a areia para evitar trincas e garantir melhor acabamento."
+        )
+
+    if "reboco" in texto:
+        return (
+            "Para reboco interno:\n"
+            "• Mistura: 1 parte cimento, 5 partes areia\n"
+            "• Espessura recomendada: 1,5cm\n"
+            "• Molhe bem a parede antes de aplicar\n\n"
+            "Reboco externo costuma usar areia mais grossa para maior resistência."
+        )
+
+    if "segurança" in texto:
+        return (
+            "Principais regras de segurança:\n"
+            "• Capacete sempre\n"
+            "• Cinto de segurança ao trabalhar em altura\n"
+            "• Óculos de proteção ao cortar ou lixar\n"
+            "• Organização evita 40% dos acidentes\n"
+            "• Nunca trabalhar sozinho em lajes ou escadas"
+        )
+
+    return "Ótima pergunta! No momento tenho respostas básicas, mas na versão completa trarei cálculos, NBRs e guias práticos avançados."
+
+
+========== tela_obras.py ==========
+
+import streamlit as st
+from style import load_css
+
+def render():
+    load_css()
+
+    st.markdown("<div class='title'>🏗️ Minhas Obras</div>", unsafe_allow_html=True)
+
+    obras = [
+        {"nome": "Casa do Seu Carlos", "etapas": "Reboco em andamento"},
+        {"nome": "Reforma da Loja Central", "etapas": "Pintura iniciada"},
+        {"nome": "Garagem do João", "etapas": "Fundação concluída"},
+    ]
+
+    for obra in obras:
+        st.markdown(f"""
+        <div class='card'>
+            <h3 style='color:white;'>📌 {obra['nome']}</h3>
+            <p class='subtitle'>Status: {obra['etapas']}</p>
+            <div class='btn'>Abrir Obra</div>
+        </div>
+        """, unsafe_allow_html=True)
