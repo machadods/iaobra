@@ -232,4 +232,4 @@ Curso de Tecnologia em Ciência de Dados
 
 ---
 
-*Desenvolvido por Wagner Machado*
+*Desenvolvido por Wagner Machado dos Santos*
