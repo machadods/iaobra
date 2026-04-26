@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(grep -E \"\\\\.py$|^d\")",
-      "Read(//c/c/Users/wagner/Desktop/CIENCIA DE DADOS/**)"
-    ]
-  }
-}

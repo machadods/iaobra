@@ -40,3 +40,18 @@ htmlcov/
 
 # Docker volumes locais
 postgres_data/
+
+# Arquivos internos Claude Code
+.claude/
+
+# Dumps e temporarios
+dump_*.txt
+estrutura_*.txt
+*.bak
+
+# Scripts de setup descartaveis
+setup_*.ps1
+setup_*.py
+
+# Imagens do WhatsApp (nao fazem parte do projeto)
+imagens/
