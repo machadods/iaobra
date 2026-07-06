@@ -90,7 +90,9 @@ IAOBRA/
 │   ├── migrate.py              # Runner de migrations (auto na subida)
 │   └── migrations/
 │       ├── 001_schema_completo.sql
-│       └── 002_creditos_pagamentos.sql
+│       ├── 002_creditos_pagamentos.sql
+│       ├── 003_contatos.sql
+│       └── 004_senha_hash_forte.sql
 │
 ├── infra/
 │   └── nginx.conf              # Proxy reverso + HTTPS
@@ -99,7 +101,7 @@ IAOBRA/
 │   ├── Diagrama de Classe.png
 │   ├── Diagrama de Caso de Uso.png
 │   ├── Diagrama Sequencial.png
-│   ├── Diagramas de Atividades.png
+│   ├── Diagrama de Atividades.png
 │   └── Diagrama Entidade-Relacionamento (DER).png
 │
 ├── Dockerfile
@@ -132,7 +134,7 @@ USUARIO ──< TRANSACOES (créditos/pagamentos)
 
 ### 1. Clone o repositório
 ```bash
-git clone https://github.com/seu-usuario/iaobra.git
+git clone https://github.com/machadods/iaobra.git
 cd iaobra
 ```
 
@@ -230,7 +232,7 @@ Todos os diagramas de modelagem estão na pasta `/Diagramas`:
 ## Licença
 
 Projeto acadêmico — Práticas Extensionistas III  
-Curso de Tecnologia em Ciência de Dados  
+Acadêmico de Ciência de Dados e Inteligência Artificial  
 
 ---
 
