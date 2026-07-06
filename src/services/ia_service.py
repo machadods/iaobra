@@ -139,11 +139,17 @@ Maximo 10 etapas. Linguagem simples. Responda em portugues do Brasil."""
         material = _sanitizar(material)
         regiao = _sanitizar(regiao)
         prompt = f"""Especialista em materiais de construcao civil brasileira.
-Estimativa de preco para: {material} — Regiao: {regiao}
+Da uma ESTIMATIVA DE REFERENCIA (nao um preco oficial) para: {material} — Regiao: {regiao}
 
-Inclua: faixa de preco (R$), unidade, onde encontrar, dica para economizar.
-Avise que sao estimativas e podem variar. Portugues do Brasil."""
-        return self._chamar_ia([{"role": "user", "content": prompt}], 0.3,
+Regras:
+- Sempre responda em FAIXA (minimo a maximo em R$), nunca um valor unico exato.
+- Informe a unidade (sc, m3, un, kg...).
+- Se nao tiver base confiavel para o item/regiao, diga isso claramente em vez de chutar.
+- Sugira onde confirmar o preco (fornecedores locais, tabela SINAPI/CUB).
+- Termine com: "Estimativa aproximada — confirme com fornecedores antes de fechar o orcamento."
+
+Portugues do Brasil, linguagem simples para o mestre de obras."""
+        return self._chamar_ia([{"role": "user", "content": prompt}], 0.2,
                                id_usuario=id_usuario, descricao_debito="Consulta preco IA")
 
     def chat_estudos(self, pergunta: str, historico: list = None, id_usuario: int = None) -> str:

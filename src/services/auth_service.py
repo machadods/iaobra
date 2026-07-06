@@ -4,14 +4,18 @@ LGPD: senhas em hash SHA-256, bloqueio por tentativas, inputs sanitizados.
 """
 
 import hashlib
+import hmac
+import os
 import re
 import logging
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from src.models.usuario import Usuario
 from src.utils.db_connection import db, banco_disponivel
 from config import ADMIN_USERNAME, ADMIN_PASSWORD
 
 MAX_TENTATIVAS = 5
+PBKDF2_ITER = 600_000          # OWASP 2023 para PBKDF2-HMAC-SHA256
+_PBKDF2_PREFIX = "pbkdf2_sha256"
 logger = logging.getLogger("iaobras.auth")
 
 
@@ -20,11 +24,40 @@ class AuthService:
         self._garantir_admin()
 
     # ------------------------------------------------------------------
-    # Seguranca
+    # Seguranca — hash de senha com PBKDF2 (salt por usuario)
     # ------------------------------------------------------------------
     @staticmethod
     def _hash(senha: str) -> str:
-        return hashlib.sha256(senha.strip().encode("utf-8")).hexdigest()
+        """Gera hash forte no formato 'pbkdf2_sha256$iter$salt_hex$hash_hex'."""
+        salt = os.urandom(16)
+        dk = hashlib.pbkdf2_hmac("sha256", senha.strip().encode("utf-8"), salt, PBKDF2_ITER)
+        return f"{_PBKDF2_PREFIX}${PBKDF2_ITER}${salt.hex()}${dk.hex()}"
+
+    @staticmethod
+    def _verificar(senha: str, armazenado: str) -> Tuple[bool, bool]:
+        """
+        Confere a senha contra o hash guardado.
+        Retorna (senha_correta, precisa_rehash).
+        Aceita o formato PBKDF2 novo e o SHA-256 antigo (64 chars hex),
+        sinalizando a migracao dos hashes legados.
+        """
+        if not armazenado:
+            return False, False
+        senha_b = senha.strip().encode("utf-8")
+
+        if armazenado.startswith(_PBKDF2_PREFIX + "$"):
+            try:
+                _, iteracoes, salt_hex, hash_hex = armazenado.split("$")
+                dk = hashlib.pbkdf2_hmac("sha256", senha_b, bytes.fromhex(salt_hex), int(iteracoes))
+                return hmac.compare_digest(dk.hex(), hash_hex), False
+            except Exception:
+                return False, False
+
+        # Legado: SHA-256 puro (64 caracteres hexadecimais)
+        legado = hashlib.sha256(senha_b).hexdigest()
+        if hmac.compare_digest(legado, armazenado):
+            return True, True
+        return False, False
 
     @staticmethod
     def _sanitizar(valor: str) -> str:
@@ -96,11 +129,20 @@ class AuthService:
                 if u.bloqueado:
                     return None
 
-                if u.senha_hash == self._hash(senha):
+                senha_ok, precisa_rehash = self._verificar(senha, u.senha_hash)
+                if senha_ok:
                     cur.execute(
                         "UPDATE usuarios SET tentativas_login = 0 WHERE id = %s",
                         (u.id,)
                     )
+                    # Migra hashes SHA-256 antigos para PBKDF2 de forma transparente
+                    if precisa_rehash:
+                        novo_hash = self._hash(senha)
+                        cur.execute(
+                            "UPDATE usuarios SET senha_hash = %s WHERE id = %s",
+                            (novo_hash, u.id)
+                        )
+                        logger.info(f"Hash de senha migrado para PBKDF2: {username}")
                     u.obras_ids = self._obras_do_usuario(u.id)
                     logger.info(f"Login OK: {username} ({u.tipo})")
                     return u
@@ -153,10 +195,11 @@ class AuthService:
                 if cur.fetchone():
                     raise ValueError(f"Usuario '{username}' ja existe.")
 
+                senha_hash = self._hash(senha)
                 cur.execute("""
                     INSERT INTO usuarios (nome, username, senha_hash, tipo)
                     VALUES (%s, %s, %s, %s) RETURNING id
-                """, (nome, username, self._hash(senha), tipo))
+                """, (nome, username, senha_hash, tipo))
                 novo_id = cur.fetchone()["id"]
 
                 if obras_ids and tipo == "cliente":
@@ -168,7 +211,7 @@ class AuthService:
 
             logger.info(f"Usuario criado: {username} ({tipo})")
             return Usuario(id=novo_id, nome=nome, username=username,
-                           senha_hash=self._hash(senha), tipo=tipo,
+                           senha_hash=senha_hash, tipo=tipo,
                            obras_ids=obras_ids or [])
         except ValueError:
             raise

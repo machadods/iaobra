@@ -11,7 +11,8 @@ from src.services.ia_service import IAService
 from src.ui.pages.login_page import render_login
 from src.utils.db_connection import db
 
-st.set_page_config(page_title="IAOBRA", page_icon=None, layout="wide")
+st.set_page_config(page_title="IAOBRA", page_icon=None, layout="wide",
+                   initial_sidebar_state="expanded")
 load_css()
 
 # ── Checagem de seguranca ─────────────────────────────────────────────
@@ -71,7 +72,8 @@ tipo_label = {"admin": "Administrador", "construtor": "Construtor", "cliente": "
 
 st.sidebar.markdown(f"**IAOBRA**")
 st.sidebar.markdown(f"{u.nome}")
-st.sidebar.markdown(f"*{tipo_label}*")
+if u.nome.strip().lower() != tipo_label.lower():
+    st.sidebar.markdown(f"*{tipo_label}*")
 st.sidebar.divider()
 
 MENUS = {
@@ -84,6 +86,7 @@ MENUS = {
         "estudos":      "Estudos com IA",
         "planos":       "Planos e Creditos",
         "admin_panel":  "Painel Admin",
+        "contato":      "Fale Conosco",
     },
     "construtor": {
         "home":      "Inicio",
@@ -93,10 +96,12 @@ MENUS = {
         "sobras":    "Mercado de Sobras",
         "estudos":   "Estudos com IA",
         "planos":    "Planos e Creditos",
+        "contato":   "Fale Conosco",
     },
     "cliente": {
         "home":        "Inicio",
         "acompanhar":  "Acompanhar Obra",
+        "contato":     "Fale Conosco",
     },
 }
 
@@ -380,12 +385,15 @@ elif pag == "orcamento" and u.tipo in ("admin", "construtor"):
                 st.write(f"• **{i.material}** — {i.quantidade} {i.unidade} x R$ {i.preco_unitario:.2f} = R$ {i.preco_total:.2f}")
 
     with aba_preco:
+        st.caption("Estimativa gerada por IA para referencia. Confirme sempre com fornecedores "
+                   "ou tabelas oficiais (SINAPI/CUB) antes de fechar o orcamento.")
         mat_p = st.text_input("Material", placeholder="cimento CP-II 50kg")
         reg_p = st.text_input("Regiao", value="Brasil")
         if st.button("Pesquisar", use_container_width=True) and mat_p:
             if ia.configurada:
                 with st.spinner("Consultando IA..."):
                     st.markdown(ia.consultar_precos(mat_p, reg_p, id_usuario=u.id))
+                st.info("Valores aproximados — nao use como preco oficial sem validar.")
             else:
                 st.warning("Configure OPENROUTER_API_KEY no .env.")
 
@@ -633,6 +641,11 @@ elif pag == "admin_panel" and u.tipo == "admin":
 elif pag == "planos" and u.tipo in ("admin", "construtor"):
     from src.ui.pages.planos_page import render_planos
     render_planos(u, cred_svc)
+
+# ── CONTATO ───────────────────────────────────────────────────────────
+elif pag == "contato":
+    from src.ui.pages.contato_page import render_contato
+    render_contato(usuario=u, is_admin=(u.tipo == "admin"))
 
 # ── ACOMPANHAR (cliente) ──────────────────────────────────────────────
 elif pag == "acompanhar" and u.tipo == "cliente":

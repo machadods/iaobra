@@ -19,8 +19,9 @@ O **IAOBRA** é uma solução desenvolvida para digitalizar e inteligencializar 
 - Diário de obra com upload de fotos, vídeos e áudios
 - Análise automática do progresso via IA (Gemini)
 - Cronograma gerado automaticamente pela IA
-- Orçamento com consulta de preços por IA
+- Orçamento com consulta de preços por IA (estimativas de referência — validar com fornecedores/SINAPI)
 - Mercado de sobras de materiais
+- Canal "Fale Conosco" para contato com os desenvolvedores
 
 ### Para o Cliente / Proprietário
 - Painel de acompanhamento em tempo real (somente leitura)
@@ -32,6 +33,7 @@ O **IAOBRA** é uma solução desenvolvida para digitalizar e inteligencializar 
 - Controle de créditos de IA
 - Confirmação de pagamentos via PIX
 - Painel de usuários e segurança
+- Leitura das mensagens recebidas pelo "Fale Conosco"
 
 ---
 
@@ -43,7 +45,7 @@ O **IAOBRA** é uma solução desenvolvida para digitalizar e inteligencializar 
 | Banco de Dados | PostgreSQL 15 |
 | IA | OpenRouter API (Gemini Flash) |
 | Infraestrutura | Docker + Nginx |
-| Autenticação | Sistema próprio com SHA-256 |
+| Autenticação | Sistema próprio com PBKDF2-HMAC-SHA256 |
 
 ---
 
@@ -216,7 +218,7 @@ Todos os diagramas de modelagem estão na pasta `/Diagramas`:
 
 ## Segurança
 
-- Senhas armazenadas com hash SHA-256
+- Senhas armazenadas com hash PBKDF2-HMAC-SHA256 (salt individual por usuário, 600 mil iterações); hashes antigos são migrados automaticamente no login
 - Bloqueio de conta após 5 tentativas de login
 - Inputs sanitizados contra injeção
 - Queries parametrizadas (sem SQL injection)
